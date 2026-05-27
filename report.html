@@ -183,6 +183,36 @@
     letter-spacing: 0.1em;
   }
   .back-link:hover { color: var(--gold); }
+
+  .hp-field {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .captcha-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .captcha-question {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    color: var(--gold-light);
+    background: #0D0B06;
+    border: 1px solid #3D2F0F;
+    border-radius: 2px;
+    padding: 8px 14px;
+    letter-spacing: 0.1em;
+    user-select: none;
+    flex-shrink: 0;
+  }
+
+  .captcha-input { flex: 1; }
 </style>
 </head>
 <body>
@@ -213,6 +243,19 @@
       <input type="datetime-local" id="paid_at">
       <div class="hint">大約時間即可</div>
     </div>
+    <div class="hp-field" aria-hidden="true">
+      <label>網址（請勿填寫）</label>
+      <input type="text" id="website" name="website" tabindex="-1" autocomplete="off">
+    </div>
+
+    <div class="field">
+      <label>驗證 <span class="req">*</span></label>
+      <div class="captcha-row">
+        <div class="captcha-question" id="captchaQ">— + — = ?</div>
+        <input class="captcha-input" type="number" id="captchaA" placeholder="答案" inputmode="numeric" required>
+      </div>
+    </div>
+
     <div class="error-msg" id="errorMsg"></div>
     <button class="submit-btn" id="submitBtn" onclick="submitReport()">送出回報</button>
     <a href="index.html" class="back-link" style="text-align:center;">← 回到預購頁</a>
@@ -232,6 +275,21 @@
 
 <script>
   const SHEET_URL = 'https://script.google.com/macros/s/AKfycbzpy2ykv16K06T7ZJx79rQaVAsHuTBC8tBC7bbHs8eChMVkzHTJMxfYJdBqi9-FoZ73Kw/exec';
+
+  const pageLoadTime = Date.now();
+  let captchaAnswer = 0;
+
+  function genCaptcha() {
+    const a = Math.floor(Math.random() * 9) + 1;
+    const b = Math.floor(Math.random() * 9) + 1;
+    const op = Math.random() < 0.5 ? '+' : '−';
+    captchaAnswer = op === '+' ? a + b : Math.max(a, b) - Math.min(a, b);
+    const x = op === '+' ? a : Math.max(a, b);
+    const y = op === '+' ? b : Math.min(a, b);
+    document.getElementById('captchaQ').textContent = `${x} ${op} ${y} = ?`;
+    document.getElementById('captchaA').value = '';
+  }
+  genCaptcha();
 
   // 從 URL 預填電話
   const urlPhone = new URLSearchParams(location.search).get('phone');
@@ -274,6 +332,23 @@
     if (!/^\d{5}$/.test(last5)) {
       errorEl.textContent = '末5碼需為 5 位數字';
       errorEl.style.display = 'block';
+      return;
+    }
+    if (document.getElementById('website').value) {
+      errorEl.textContent = '驗證失敗，請重新整理頁面再試';
+      errorEl.style.display = 'block';
+      return;
+    }
+    if (Date.now() - pageLoadTime < 2000) {
+      errorEl.textContent = '請完整填寫表單後再送出';
+      errorEl.style.display = 'block';
+      return;
+    }
+    const userAns = parseInt(document.getElementById('captchaA').value, 10);
+    if (userAns !== captchaAnswer) {
+      errorEl.textContent = '驗證答案錯誤，請重試';
+      errorEl.style.display = 'block';
+      genCaptcha();
       return;
     }
 

@@ -344,6 +344,39 @@
     color: #a08040;
     line-height: 1.9;
   }
+
+  /* Honeypot：隱藏給 bot 上鉤 */
+  .hp-field {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .captcha-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .captcha-question {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    color: var(--gold-light);
+    background: #0D0B06;
+    border: 1px solid #3D2F0F;
+    border-radius: 2px;
+    padding: 8px 14px;
+    letter-spacing: 0.1em;
+    user-select: none;
+    flex-shrink: 0;
+  }
+
+  .captcha-input {
+    flex: 1;
+  }
 </style>
 </head>
 <body>
@@ -412,6 +445,21 @@
       <div class="total-label">總金額</div>
       <div class="total-amount" id="total">$580</div>
     </div>
+
+    <!-- 蜜罐：真人看不到，bot 會填 -->
+    <div class="hp-field" aria-hidden="true">
+      <label>網址（請勿填寫）</label>
+      <input type="text" id="website" name="website" tabindex="-1" autocomplete="off">
+    </div>
+
+    <div class="field">
+      <label>驗證 <span class="req">*</span></label>
+      <div class="captcha-row">
+        <div class="captcha-question" id="captchaQ">— + — = ?</div>
+        <input class="captcha-input" type="number" id="captchaA" placeholder="答案" inputmode="numeric" required>
+      </div>
+    </div>
+
     <div class="error-msg" id="errorMsg"></div>
     <button class="submit-btn" id="submitBtn" onclick="submitOrder()">確認預購</button>
   </div>
@@ -431,6 +479,22 @@
 
   let qty = 1;
   const price = 580;
+
+  // ====== 防護：honeypot + 數學驗證 + 時間檢查 ======
+  const pageLoadTime = Date.now();
+  let captchaAnswer = 0;
+
+  function genCaptcha() {
+    const a = Math.floor(Math.random() * 9) + 1;
+    const b = Math.floor(Math.random() * 9) + 1;
+    const op = Math.random() < 0.5 ? '+' : '−';
+    captchaAnswer = op === '+' ? a + b : Math.max(a, b) - Math.min(a, b);
+    const x = op === '+' ? a : Math.max(a, b);
+    const y = op === '+' ? b : Math.min(a, b);
+    document.getElementById('captchaQ').textContent = `${x} ${op} ${y} = ?`;
+    document.getElementById('captchaA').value = '';
+  }
+  genCaptcha();
 
   function changeQty(delta) {
     qty = Math.max(1, qty + delta);
@@ -457,6 +521,29 @@
     if (!/^09\d{2}-\d{3}-\d{3}$/.test(phone)) {
       errorEl.textContent = '電話格式錯誤，請輸入 09xx-xxx-xxx';
       errorEl.style.display = 'block';
+      return;
+    }
+
+    // Honeypot：bot 會填這個隱藏欄位
+    if (document.getElementById('website').value) {
+      errorEl.textContent = '驗證失敗，請重新整理頁面再試';
+      errorEl.style.display = 'block';
+      return;
+    }
+
+    // 時間檢查：< 2 秒送出 = 腳本
+    if (Date.now() - pageLoadTime < 2000) {
+      errorEl.textContent = '請完整填寫表單後再送出';
+      errorEl.style.display = 'block';
+      return;
+    }
+
+    // 數學驗證碼
+    const userAns = parseInt(document.getElementById('captchaA').value, 10);
+    if (userAns !== captchaAnswer) {
+      errorEl.textContent = '驗證答案錯誤，請重試';
+      errorEl.style.display = 'block';
+      genCaptcha();
       return;
     }
 
