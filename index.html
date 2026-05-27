@@ -38,6 +38,12 @@
     position: relative;
   }
 
+  .hero {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
   .card::before {
     content: '';
     position: absolute;
@@ -116,6 +122,62 @@
     color: #b09050;
     letter-spacing: 0.03em;
   }
+
+  .pay-options {
+    display: flex;
+    gap: 8px;
+  }
+
+  .pay-option {
+    flex: 1;
+    position: relative;
+  }
+
+  .pay-option input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .pay-option label {
+    display: block;
+    text-align: center;
+    padding: 10px;
+    border: 1px solid #3D2F0F;
+    background: #0D0B06;
+    color: #7a6030;
+    border-radius: 2px;
+    cursor: pointer;
+    font-size: 13px;
+    letter-spacing: 0.1em;
+    transition: all 0.15s;
+    text-transform: none;
+  }
+
+  .pay-option input:checked + label {
+    border-color: var(--gold);
+    color: var(--gold);
+    background: #C9A84C11;
+  }
+
+  .bank-info {
+    margin-top: 4px;
+    padding: 14px 16px;
+    background: #0D0B06;
+    border: 1px solid #3D2F0F;
+    border-radius: 2px;
+    font-size: 12px;
+    color: #b09050;
+    line-height: 1.8;
+    display: none;
+  }
+
+  .bank-info.show { display: block; }
+
+  .bank-info .row { display: flex; justify-content: space-between; }
+  .bank-info .key { color: #7a6030; letter-spacing: 0.1em; }
+  .bank-info .val { color: var(--cream); font-family: 'Playfair Display', serif; }
+  .bank-info .placeholder { color: #50400A; font-style: italic; }
 
   .form {
     padding: 24px 36px 36px;
@@ -276,11 +338,7 @@
 </head>
 <body>
 <div class="card">
-  <div class="header">
-    <div class="badge">限量預購</div>
-    <div class="title">黑金巧克力香蕉</div>
-    <div class="subtitle">Black Gold Chocolate Banana</div>
-  </div>
+  <img src="hero.jpg" alt="黑金巧克力香蕉" class="hero">
 
   <div class="info-row">
     <div class="info-item">
@@ -297,7 +355,7 @@
     </div>
   </div>
 
-  <div class="notice">⚠ 先統計數量，後續再以電話聯繫取貨時間／地點</div>
+  <div class="notice">⚠ 限量手工製作・不定期出貨，售完為止。預訂後將以電話聯繫付款／取貨細節。</div>
 
   <div class="form" id="orderForm">
     <div class="field">
@@ -318,8 +376,27 @@
       </div>
     </div>
     <div class="field">
+      <label>付款方式 <span class="req">*</span></label>
+      <div class="pay-options">
+        <div class="pay-option">
+          <input type="radio" id="pay_cash" name="payment" value="現金" checked>
+          <label for="pay_cash">現金</label>
+        </div>
+        <div class="pay-option">
+          <input type="radio" id="pay_transfer" name="payment" value="匯款">
+          <label for="pay_transfer">匯款</label>
+        </div>
+      </div>
+      <div class="bank-info" id="bankInfo">
+        <div class="row"><span class="key">銀行</span><span class="val placeholder">即將提供</span></div>
+        <div class="row"><span class="key">帳號</span><span class="val placeholder">即將提供</span></div>
+        <div class="row"><span class="key">戶名</span><span class="val placeholder">即將提供</span></div>
+        <div style="margin-top:8px;font-size:11px;color:#7a6030;">送出後將顯示完整資訊及匯款回報連結</div>
+      </div>
+    </div>
+    <div class="field">
       <label>備註</label>
-      <textarea id="note" rows="2" placeholder="特殊需求或指定取貨時段…"></textarea>
+      <textarea id="note" rows="2" placeholder="任何特殊需求…"></textarea>
     </div>
     <div class="total-row">
       <div class="total-label">總金額</div>
@@ -355,6 +432,7 @@
     const name = document.getElementById('name').value.trim();
     const phone = document.getElementById('phone').value.trim();
     const note = document.getElementById('note').value.trim();
+    const payment = document.querySelector('input[name="payment"]:checked').value;
     const errorEl = document.getElementById('errorMsg');
     const btn = document.getElementById('submitBtn');
 
@@ -383,11 +461,11 @@
         method: 'POST',
         mode: 'no-cors',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, phone, qty, total, note })
+        body: JSON.stringify({ type: 'order', name, phone, qty, total, payment, note })
       });
 
       // no-cors 無法讀取 response，視為成功
-      showSuccess(name, total, note);
+      showSuccess(name, phone, total, payment, note);
 
     } catch (err) {
       btn.disabled = false;
@@ -397,17 +475,43 @@
     }
   }
 
-  function showSuccess(name, total, note) {
+  function showSuccess(name, phone, total, payment, note) {
     document.getElementById('orderForm').style.display = 'none';
     const s = document.getElementById('successMsg');
     s.style.display = 'flex';
+
+    let payBlock;
+    if (payment === '匯款') {
+      const reportUrl = `report.html?phone=${encodeURIComponent(phone)}`;
+      payBlock =
+        `<div style="margin-top:16px;padding:14px;background:#0D0B06;border:1px solid var(--border);text-align:left;font-size:13px;line-height:1.9;">` +
+        `<div style="color:var(--gold);letter-spacing:0.1em;margin-bottom:8px;">匯款資訊</div>` +
+        `<div style="color:#7a6030;">銀行　<span style="color:#50400A;font-style:italic;">即將提供</span></div>` +
+        `<div style="color:#7a6030;">帳號　<span style="color:#50400A;font-style:italic;">即將提供</span></div>` +
+        `<div style="color:#7a6030;">戶名　<span style="color:#50400A;font-style:italic;">即將提供</span></div>` +
+        `<div style="margin-top:10px;font-size:11px;color:#7a6030;">完整帳號將以電話／訊息提供</div>` +
+        `</div>` +
+        `<a href="${reportUrl}" class="submit-btn" style="display:inline-block;text-decoration:none;margin-top:14px;text-align:center;">匯款後回報末5碼 →</a>`;
+    } else {
+      payBlock = `<div style="margin-top:14px;font-size:13px;color:#a08040;">💵 取貨時請準備現金 $${total.toLocaleString()}</div>`;
+    }
+
     document.getElementById('successDetail').innerHTML =
       `${name} 您好，已收到您的預購申請<br><br>` +
       `🍫 黑金巧克力香蕉 × ${qty} 盒<br>` +
       `💰 應付金額：$${total.toLocaleString()}<br>` +
+      `💳 付款方式：${payment}<br>` +
       (note ? `📝 備註：${note}<br>` : '') +
-      `<br>後續將以電話聯繫取貨時間／地點`;
+      `<br>限量手工製作，將於備貨完成後以電話聯繫取貨` +
+      payBlock;
   }
+
+  // 切換付款方式：顯示／隱藏銀行區塊
+  document.querySelectorAll('input[name="payment"]').forEach(r => {
+    r.addEventListener('change', () => {
+      document.getElementById('bankInfo').classList.toggle('show', r.value === '匯款' && r.checked);
+    });
+  });
 
   document.getElementById('phone').addEventListener('input', (e) => {
     const digits = e.target.value.replace(/\D/g, '').slice(0, 10);

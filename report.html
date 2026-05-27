@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>匯款回報｜黑金巧克力香蕉</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Noto+Serif+TC:wght@400;600&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --gold: #C9A84C;
+    --gold-light: #E8CB7A;
+    --dark: #1A1209;
+    --cream: #FAF3E0;
+    --border: #C9A84C55;
+  }
+
+  body {
+    background: var(--dark);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Noto Serif TC', serif;
+    padding: 24px;
+  }
+
+  .card {
+    background: linear-gradient(145deg, #211508 0%, #1A1209 60%, #261A08 100%);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    max-width: 440px;
+    width: 100%;
+    overflow: hidden;
+    box-shadow: 0 8px 60px #00000088, inset 0 1px 0 #C9A84C33;
+    position: relative;
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, var(--gold), var(--gold-light), var(--gold), transparent);
+  }
+
+  .header {
+    padding: 36px 36px 20px;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .badge {
+    display: inline-block;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    color: var(--gold);
+    border: 1px solid var(--gold);
+    padding: 3px 12px;
+    margin-bottom: 16px;
+  }
+
+  .title {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    font-weight: 900;
+    color: var(--gold-light);
+  }
+
+  .subtitle {
+    font-size: 12px;
+    color: #a08040;
+    margin-top: 6px;
+    letter-spacing: 0.05em;
+  }
+
+  .form {
+    padding: 24px 36px 36px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .field { display: flex; flex-direction: column; gap: 6px; }
+
+  label {
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    color: var(--gold);
+    text-transform: uppercase;
+  }
+
+  label .req { color: var(--gold); margin-left: 3px; }
+  .hint { font-size: 11px; color: #7a6030; margin-top: 2px; }
+
+  input {
+    background: #0D0B06;
+    border: 1px solid #3D2F0F;
+    border-radius: 2px;
+    color: var(--cream);
+    font-family: 'Noto Serif TC', serif;
+    font-size: 14px;
+    padding: 10px 14px;
+    outline: none;
+    transition: border-color 0.2s;
+    width: 100%;
+  }
+
+  input:focus { border-color: var(--gold); }
+  input::placeholder { color: #50400A; }
+
+  .submit-btn {
+    background: linear-gradient(135deg, #A07828, #C9A84C, #A07828);
+    border: none;
+    border-radius: 2px;
+    color: var(--dark);
+    font-family: 'Playfair Display', serif;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    padding: 14px;
+    cursor: pointer;
+    transition: all 0.3s;
+    width: 100%;
+    margin-top: 4px;
+  }
+
+  .submit-btn:hover { box-shadow: 0 4px 20px #C9A84C44; }
+  .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+  .spinner {
+    display: inline-block;
+    width: 14px; height: 14px;
+    border: 2px solid var(--dark);
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    margin-right: 8px;
+    vertical-align: middle;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .error-msg {
+    font-size: 12px;
+    color: #e08040;
+    padding: 10px 14px;
+    background: #e0804011;
+    border-left: 2px solid #e08040;
+    display: none;
+  }
+
+  .success {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    padding: 48px 36px;
+    text-align: center;
+    gap: 12px;
+  }
+
+  .success-icon { font-size: 40px; }
+
+  .success-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    color: var(--gold-light);
+  }
+
+  .success-text {
+    font-size: 13px;
+    color: #a08040;
+    line-height: 1.9;
+  }
+
+  .back-link {
+    margin-top: 12px;
+    font-size: 12px;
+    color: #7a6030;
+    text-decoration: none;
+    letter-spacing: 0.1em;
+  }
+  .back-link:hover { color: var(--gold); }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="header">
+    <div class="badge">匯款回報</div>
+    <div class="title">回報您的匯款</div>
+    <div class="subtitle">便於對帳與出貨安排</div>
+  </div>
+
+  <div class="form" id="reportForm">
+    <div class="field">
+      <label>訂購電話 <span class="req">*</span></label>
+      <input type="tel" id="phone" placeholder="09xx-xxx-xxx" maxlength="12" inputmode="numeric" required>
+      <div class="hint">請填預訂時使用的電話，作為對單依據</div>
+    </div>
+    <div class="field">
+      <label>匯款帳號末 5 碼 <span class="req">*</span></label>
+      <input type="text" id="last5" placeholder="例：12345" maxlength="5" inputmode="numeric" required>
+      <div class="hint">您匯出帳戶的後 5 碼，非收款帳號</div>
+    </div>
+    <div class="field">
+      <label>匯款金額 <span class="req">*</span></label>
+      <input type="number" id="amount" placeholder="例：580" min="1" required>
+    </div>
+    <div class="field">
+      <label>匯款時間</label>
+      <input type="datetime-local" id="paid_at">
+      <div class="hint">大約時間即可</div>
+    </div>
+    <div class="error-msg" id="errorMsg"></div>
+    <button class="submit-btn" id="submitBtn" onclick="submitReport()">送出回報</button>
+    <a href="index.html" class="back-link" style="text-align:center;">← 回到預購頁</a>
+  </div>
+
+  <div class="success" id="successMsg">
+    <div class="success-icon">✦</div>
+    <div class="success-title">已收到匯款回報</div>
+    <div class="success-text">
+      將與您的訂單核對，<br>
+      確認後以電話聯繫出貨安排。<br><br>
+      感謝您的支持。
+    </div>
+    <a href="index.html" class="back-link">← 回到預購頁</a>
+  </div>
+</div>
+
+<script>
+  const SHEET_URL = 'https://script.google.com/macros/s/AKfycbzpy2ykv16K06T7ZJx79rQaVAsHuTBC8tBC7bbHs8eChMVkzHTJMxfYJdBqi9-FoZ73Kw/exec';
+
+  // 從 URL 預填電話
+  const urlPhone = new URLSearchParams(location.search).get('phone');
+  if (urlPhone) document.getElementById('phone').value = urlPhone;
+
+  // 電話自動格式化
+  document.getElementById('phone').addEventListener('input', (e) => {
+    const digits = e.target.value.replace(/\D/g, '').slice(0, 10);
+    let formatted = digits;
+    if (digits.length > 7) formatted = `${digits.slice(0,4)}-${digits.slice(4,7)}-${digits.slice(7)}`;
+    else if (digits.length > 4) formatted = `${digits.slice(0,4)}-${digits.slice(4)}`;
+    e.target.value = formatted;
+  });
+
+  // 末5碼只允許數字
+  document.getElementById('last5').addEventListener('input', (e) => {
+    e.target.value = e.target.value.replace(/\D/g, '').slice(0, 5);
+  });
+
+  async function submitReport() {
+    const phone = document.getElementById('phone').value.trim();
+    const last5 = document.getElementById('last5').value.trim();
+    const amount = document.getElementById('amount').value.trim();
+    const paid_at = document.getElementById('paid_at').value;
+    const errorEl = document.getElementById('errorMsg');
+    const btn = document.getElementById('submitBtn');
+
+    errorEl.style.display = 'none';
+
+    if (!phone || !last5 || !amount) {
+      errorEl.textContent = '請填寫電話、末5碼及金額';
+      errorEl.style.display = 'block';
+      return;
+    }
+    if (!/^09\d{2}-\d{3}-\d{3}$/.test(phone)) {
+      errorEl.textContent = '電話格式錯誤，請輸入 09xx-xxx-xxx';
+      errorEl.style.display = 'block';
+      return;
+    }
+    if (!/^\d{5}$/.test(last5)) {
+      errorEl.textContent = '末5碼需為 5 位數字';
+      errorEl.style.display = 'block';
+      return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span>送出中…';
+
+    try {
+      await fetch(SHEET_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'report', phone, last5, amount: Number(amount), paid_at })
+      });
+      document.getElementById('reportForm').style.display = 'none';
+      document.getElementById('successMsg').style.display = 'flex';
+    } catch (err) {
+      btn.disabled = false;
+      btn.innerHTML = '送出回報';
+      errorEl.textContent = '送出失敗，請稍後再試';
+      errorEl.style.display = 'block';
+    }
+  }
+</script>
+</body>
+</html>
