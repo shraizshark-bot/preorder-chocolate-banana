@@ -297,7 +297,7 @@
     </div>
   </div>
 
-  <div class="notice">⚠ 建議當天食用完畢，請依取貨時間安排食用計畫</div>
+  <div class="notice">⚠ 先統計數量，後續再以電話聯繫取貨時間／地點</div>
 
   <div class="form" id="orderForm">
     <div class="field">
@@ -307,10 +307,6 @@
     <div class="field">
       <label>聯絡電話 <span class="req">*</span></label>
       <input type="tel" id="phone" placeholder="09xx-xxx-xxx" maxlength="12" inputmode="numeric" required>
-    </div>
-    <div class="field">
-      <label>取貨日期 <span class="req">*</span></label>
-      <input type="date" id="pickup_date" required>
     </div>
     <div class="field">
       <label>訂購數量</label>
@@ -358,15 +354,14 @@
   async function submitOrder() {
     const name = document.getElementById('name').value.trim();
     const phone = document.getElementById('phone').value.trim();
-    const pickup_date = document.getElementById('pickup_date').value;
     const note = document.getElementById('note').value.trim();
     const errorEl = document.getElementById('errorMsg');
     const btn = document.getElementById('submitBtn');
 
     errorEl.style.display = 'none';
 
-    if (!name || !phone || !pickup_date) {
-      errorEl.textContent = '請填寫姓名、聯絡電話及取貨日期';
+    if (!name || !phone) {
+      errorEl.textContent = '請填寫姓名及聯絡電話';
       errorEl.style.display = 'block';
       return;
     }
@@ -388,11 +383,11 @@
         method: 'POST',
         mode: 'no-cors',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, phone, pickup_date, qty, total, note })
+        body: JSON.stringify({ name, phone, qty, total, note })
       });
 
       // no-cors 無法讀取 response，視為成功
-      showSuccess(name, pickup_date, total, note);
+      showSuccess(name, total, note);
 
     } catch (err) {
       btn.disabled = false;
@@ -402,22 +397,17 @@
     }
   }
 
-  function showSuccess(name, date, total, note) {
+  function showSuccess(name, total, note) {
     document.getElementById('orderForm').style.display = 'none';
     const s = document.getElementById('successMsg');
     s.style.display = 'flex';
-    const dateStr = date.replace(/-/g, '/');
     document.getElementById('successDetail').innerHTML =
       `${name} 您好，已收到您的預購申請<br><br>` +
       `🍫 黑金巧克力香蕉 × ${qty} 盒<br>` +
-      `📅 取貨日期：${dateStr}<br>` +
       `💰 應付金額：$${total.toLocaleString()}<br>` +
       (note ? `📝 備註：${note}<br>` : '') +
-      `<br>請記得當天食用完畢`;
+      `<br>後續將以電話聯繫取貨時間／地點`;
   }
-
-  const today = new Date().toISOString().split('T')[0];
-  document.getElementById('pickup_date').setAttribute('min', today);
 
   document.getElementById('phone').addEventListener('input', (e) => {
     const digits = e.target.value.replace(/\D/g, '').slice(0, 10);

@@ -44,8 +44,8 @@ preorder-chocolate-banana/
 ### HTML 區塊
 - `.header` — 商品名稱、badge
 - `.info-row` — 規格／人數／售價三欄
-- `.notice` — 當天食用提醒
-- `#orderForm` — 表單本體（姓名、電話、取貨日期、數量、備註、總金額）
+- `.notice` — 後續電話聯繫提醒
+- `#orderForm` — 表單本體（姓名、電話、數量、備註、總金額）
 - `#successMsg` — 送出成功後顯示的確認畫面
 
 ### JavaScript 邏輯
@@ -72,8 +72,8 @@ function doPost(e) {
     .getActiveSheet();
 
   if (sheet.getLastRow() === 0) {
-    sheet.appendRow(['時間戳記', '姓名', '電話', '取貨日期', '數量(盒)', '總金額', '備註']);
-    sheet.getRange(1, 1, 1, 7).setFontWeight('bold');
+    sheet.appendRow(['時間戳記', '姓名', '電話', '數量(盒)', '總金額', '備註']);
+    sheet.getRange(1, 1, 1, 6).setFontWeight('bold');
   }
 
   const d = JSON.parse(e.postData.contents);
@@ -81,7 +81,6 @@ function doPost(e) {
     new Date().toLocaleString('zh-TW', { timeZone: 'Asia/Taipei' }),
     d.name,
     d.phone,
-    d.pickup_date,
     d.qty,
     d.total,
     d.note || ''
@@ -95,9 +94,9 @@ function doPost(e) {
 
 ## Sheet 欄位結構
 
-| A | B | C | D | E | F | G |
-|---|---|---|---|---|---|---|
-| 時間戳記 | 姓名 | 電話 | 取貨日期 | 數量(盒) | 總金額 | 備註 |
+| A | B | C | D | E | F |
+|---|---|---|---|---|---|
+| 時間戳記 | 姓名 | 電話 | 數量(盒) | 總金額 | 備註 |
 
 ## 修改指引
 
